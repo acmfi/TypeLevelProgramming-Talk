@@ -1,0 +1,9 @@
+:set +t
+:set prompt "\ESC[1;34m%s\ESC[m\nλ> "
+-- :set prompt "\ESC[1;34mλ>\ESC[m "
+:set -XDataKinds
+:set -XTypeOperators
+:set -XConstraintKinds
+:set -XGADTs
+:set -XKindSignatures
+:set -XStandaloneDeriving

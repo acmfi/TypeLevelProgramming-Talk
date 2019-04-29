@@ -1,0 +1,15 @@
+version: '3'
+services:
+    tlp:
+        build: .
+        image: tlp
+        command: tlp
+        expose:
+            - "1234"
+    nginx:
+        build: ./nginx
+        image: nginx
+        ports:
+            - "8080:80"
+        depends_on:
+            - tlp

@@ -1,0 +1,377 @@
+* Type Level Programming
+** Intro
+
+# Mención a la programación
+
+En la escuela (facultad) se enseña programación desde nada más entrar
+al grado. Forma parte de una rama fundamental de la informática, y la
+forma que tenemos de programar es mediante lenguajes de
+programación. El estudio de estos es tan extenso que el departamento
+más grande de la facultad es el Departamento de Lenguajes.
+
+# Clasificación de los lenguajes
+
+Todo este estudio ha provocado una necesaria estructuración o
+clasificación de los lenguajes. Uno de los primeros aspectos que
+miramos de un lenguaje es saber qué podemos hacer con él, ¿para qué
+nos va a servir? ¿Qué vamos a poder programar?
+
+No es lo mismo si queremos programar una página web, un servidor,
+hacer inteligencia artificial, consultas a bases de datos o scripts de
+mantenimiento. Al final la mayoría de estos lenguajes son equivalentes
+en cuanto a que con mayor o menor esfuerzo (gracias a librerías o
+integración) podremos llegar al mismo resultado
+
+Sin embargo, hay otros aspectos en los que no nos solemos fijar tanto
+a la hora de elegir un lenguaje. El diseño del lenguaje nos condiciona
+respecto a lo que podemos expresar con él. La sintaxis es de lo primero
+que aprendemos de un lenguaje, e incluso aquí podemos encontrar
+diferencias entre lo que ofrecen unos y otros lenguajes. Por ejemplo,
+en qué lenguajes podemos escribir esto:
+
+#+BEGIN_SRC python :results output
+print(1 < 2 < 3)
+print(1 < 2 and 2 < 3)
+#+END_SRC
+
+#+RESULTS:
+: True
+: True
+
+Estos dos programas son equivalentes, nos permiten computar lo mismo
+de diferentes maneras. Concretamente esta sintaxis no debería
+decantarnos por elegir un lenguaje u otro, pero otras caracterísitcas
+del diseño sí que van a ser cruciales para los pogramas que escribamos.
+
+Lo que veremos hoy no van a ser decisiones de diseño de azúcar
+sintáctico que nos van a ahorrar unos caracteres. Hoy vamos a ver
+características del lenguaje que nos van a permitir razonar si los
+programas que estamos escribiendo son correctos.
+
+** Teoría
+*** Value Level Programming
+
+En casi todos los paradigmas de programación el código que escribimos
+se agrupa en funciones o métodos. Esto nos permite aislar porciones
+lógicas de nuestro programa bien porque son una parte recurrente del
+programa o porque nos permite entender mejor las pequeñas partes del
+programa completo.
+
+Las funciones se identifican por devolver valores, resultados de un
+cálculo. Este resultado, por lo general, va a estar determinado
+siempre y exclusivamente por unos parámetros (argumentos y/o
+estado). Para razonar mejor sobre el programa, es conveniente que el
+resultado de una función venga siempre de unos parámetros explícitos.
+
+Planteemos ahora el lenguaje en que el todas las funciones son
+expresiones que devuelven valores únicamente dependientes de los
+parámetros de entrada. BOOM, FP.
+
+#+BEGIN_SRC python
+def duplicar(x):
+  return x * 2
+#+END_SRC
+
+#+BEGIN_SRC haskell
+duplicar x = x * 2
+#+END_SRC
+
+Una vez tenemos los bloques básicos con los que construimos nuestro
+programa, empezamos a componerlos para lograr comportamientos más
+complejos.
+
+#+BEGIN_SRC python
+
+#+END_SRC
+
+*** Tipos
+
+#+BEGIN_SRC haskell
+
+data Unit = Unit
+
+data Bool = True | False
+
+                  -- Name   Age
+data Person = Person String Int
+#+END_SRC
+
+http://hackage.haskell.org/package/base-4.12.0.0/docs/src/GHC.Base.html
+
+*** Programación genérica
+
+Nos permite abstraernos de los valores concretos que estamos manejando
+y centrarnos en parte de sus propiedades o bien en estructuras en las
+que los encontraremos. Por ejemplo, conocer la longitud de una lista
+es independiente del tipo de elementos que almacene.
+
+#+BEGIN_SRC haskell
+len :: [Bool] -> Int
+len [] = 0
+len (x:xs) = 1 + len xs
+
+len' :: [a] -> Int
+len' [] = 0
+len' (x:xs) = 1 + len' xs
+
+map :: (a -> b) -> [a] -> [b]
+zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
+#+END_SRC
+
+*** Tipos genéricos
+
+Podemos abstraer a su vez esta noción de programación genérica al
+nivel de los tipos. Un ejemplo sería pensar en las estructuras de
+datos de forma independiente a los datos que manejas. Por ejemplo, una
+tupla de 2 elementos puede contener dos elementos de cualquier
+tipo.
+
+#+BEGIN_SRC haskell
+countReps :: [String] -> [(String, Int)]
+
+modulo :: (Double, Double) -> Double
+#+END_SRC
+
+La estructura de datos con la que estamos trabajando es siempre la
+misma, solo que los datos que contiene (y sus tipos), cambian según la
+definición. Haskell permite definir estructuras de datos genéricas
+parametrizando un tipo.
+
+#+BEGIN_SRC haskell
+data Tuple a b = Tuple a b   -- Definición real:   data (,) a b = (,) a b
+
+type Punto = Tuple Double Double
+type Reserva = Tuple String Int
+#+END_SRC
+
+El caso de la lista se define igualmente de forma
+parametrizada. Además, tiene la característica de ser una definición
+recursiva. Una lista de elementos de tipo ~a~ en Haskell puede ser o
+bien una lista vacía o bien un elmento de tipo ~a~ junto a una lista
+de elementos de tipo ~a~. Otro ejemplo de tipos de datos recursivos
+son los árboles.
+
+#+BEGIN_SRC haskell
+
+data List a = Nil | Cons a (List a)
+data []   a =  [] | a : [a]
+
+
+data Tree a = Node a (Tree a) (Tree a) | Leaf a
+
+#+END_SRC
+
+
+Una de las implicaciones que tiene esta definición es que las listas
+siempre van a ser homogéneas. La estructura de lista podrá contener
+cualquier tipo de elmentos, pero una lista concreta tendrá todos sus
+elementos del mismo tipo. Es decir, una lista de enteros solamente
+podrá tener enteros, una lista de strings solo strings.
+
+El polimorfismo (ad-hoc) nos permite trabajar con diferentes tipos en
+una misma función, siempre que por ejemplo soporten las operaciones
+que queremos hacer sobre ellos. Por ejemplo, si queremos conocer la
+longitud de una lista no necesitamos operar sobre los elementos de la
+lista, solo sobre la estructura. Esto implica que va a funcionar para
+todo ~a~, siendo ~a~ una variable de tipo. Sin embargo, si queremos
+ordenar una lista, necesitaríamos poder comparar los elementos de una
+lista. Esta función ya no sería válida para los elementos que no se
+puedan comparar, por lo tanto, tendríamos que indicar esta restricción
+en el tipo de la función. Las type-classes en Haskell permiten indicar
+este comportamiento.
+
+#+BEGIN_SRC haskell
+sort :: Ord a => [a] -> [a]
+#+END_SRC
+
+Otro ejemplo sería imprimir por pantalla una lista de elementos. El
+requitiso para hacerlo es que el tipo implemente la type-class de
+~Show~.
+
+#+BEGIN_SRC haskell
+elemToString :: Show a => [a] -> [String]
+#+END_SRC
+
+Se recalca de nuevo que la variable de tipo ~a~ solo puede resolverse
+a un único tipo. La lista no puede componerse de elementos de tipos
+que implementen la interfaz ~Show~. Este último caso sería un ejemplo
+de /subtyping/.
+
+*** Kinds
+
+Los tipos de las listas o tuplas que hemos explicado anteriormente no
+son exactamente iguales que por ejemplo un entero o un string. En la
+sintaxis de la defición hemos tenido que indicar un parámetro. Este
+parámetro del tipo nos sirve realmente para construir un tipo.
+
+Cuando estemos ejecutando nuestro programa, ~[a]~ en sí no tendrá
+sentido, porque estaremos trabajando con elementos concreto. Podrá ser
+~[Int]~, ~[Char]~ o cualquier otra cosa, pero tendrá que ser un tipo
+concreto. Lo que indicamos con ~a~ es que es un *tipo variable*.
+
+Entonces, ¿qué significa ~[]~, o ~Tuple~. Se tratan de constructures
+de tipos, y necesitan un tipo concreto ~a~ para la lista o dos tipos
+~a~ y ~b~ en las tuplas para poder crear un tipo concretos. Estos
+constructores de tipos son funciones que reciben uno (o más)
+argumentos y me devuelven un tipo que puedo usar en las definiciones
+de mis funciones.
+
+#+BEGIN_SRC haskell
+ 1  ::  Int
+[1] :: [Int]
+incrementar :: Int -> Int
+
+        Int  :: Type
+       [Int] :: Type
+        [ ]  :: Type -> Type
+
+        Either :: Type -> Type -> Type
+#+END_SRC
+
+Estas anotaciones sobre los "tipos de los tipos" reciben el nombre de
+"kinds". Empezamos a entrar en la extensión del compilador /Data
+Kinds/.
+
+El constructor ~[ ]~ nos permite operar con tipos. En su caso, genera
+un tipo nuevo, pero, ¿es posible realizar otro tipo de operaciones?
+Antes se ha explicado cómo aplicábamos restricciones sobre variables
+de tipo. Para ordenar una lista necesitábamos saber que sus elementos
+implementaban la type-class ~Ord~, y que para imprimir un valor,
+necesitabamos tener una implementación de ~Show~. Al igual que en
+Haskell podemos preguntar por el tipo de una expresión, también
+podemos preguntar por el /kind/ de la misma.
+
+#+BEGIN_SRC haskell
+Eq   :: Type -> Constraint
+Show :: Type -> Constraint
+#+END_SRC
+
+Pero un momento, hay veces que se ponen otras restricciones en las
+funciones, por ejemplo:
+
+#+BEGIN_SRC haskell
+fmap :: Functor f => f a -> (a -> b) -> f a -> f b
+#+END_SRC
+
+¿Cuál es el /kind/ de ~Functor~?
+
+#+BEGIN_SRC haskell
+Functor :: (Type -> Type) -> Constraint
+Monad   :: (Type -> Type) -> Constraint
+#+END_SRC
+
+Una vez que hemos visto que podemos mezclar ~Type~ y ~Constraint~, al
+menos en lo que parecen expresiones de tipos, ¿existen más /kinds/?
+¿Podemos definir los nuestros? ¿Para qué nos sirven?
+
+De primeras, nos sirven para razonar sobre nuestros programas y sus
+propiedades. Forman panta fundamental del sistema de type-classes, que
+permiten el polimorfismo ad-hoc en Haskell. A continuación vermos más
+ejemplos de cómo podemos utilizarlos.
+
+Anteriormente hemos podido tener confusión al entender qué significa
+por ejemplo ~[ ]~. Puede tratarse de una lista vacía o de un
+constructor de tipos. Al definir el ~data~, según el contexto en el
+que lo estemos escribiendo (expresiones, tipos), significará una cosa
+u otra. Es importante por tanto tener siempre presente el ámbito en el
+que estamos leyendo y operando.
+
+#+BEGIN_SRC haskell
+data Bool = True | False
+#+END_SRC
+
+La definición del tipo de datos ~Bool~ genera un constructor de tipos
+~Bool~ de /kind/ ~Type~, un constructor ~True~ de tipo ~Bool~ y
+~False~ de tipo ~Bool~. Al tener habilitada la extensión del
+compilador /-XDataKinds/ además se generan los siguientes
+constructores:
+
+ - Un nuevo /kind/ llamado ~Bool~.
+ - Un nuevo constructor de datos ~'True~ de /kind/ ~Bool~.
+ - Un nuevo constructor de datos ~'False~ de /kind/ ~Bool~.
+
+Esta creación de nuevos constructores se llama /promocionar/. Existen
+más constructores que pueden ser promocionados, como Strings o
+números. En el caso de los números, solo podemos hacerlos con los
+naturales, y nos podemos apoyar en la extensión /Type Operators/ y el
+módulo ~GHC.TypeLits~ para hacerlo.
+
+#+BEGIN_SRC haskell
+:kind 10
+10 :: GHC.TypeLits.Nat
+
+:kind (10 + 5)
+(10 + 5) :: GHC.TypeLits.Nat
+
+:kind! (10 + 5)
+(10 + 5) :: GHC.TypeLits.Nat
+= 15
+#+END_SRC
+
+Este operador ~+~ no está en el nivel de los valores, sino en los
+tipos. Y no solo nos tenemos que centrar en
+
+*** Type Level Programming
+
+Conocemos lo operadores lógicos sobre los valores booleanos:
+
+#+BEGIN_SRC haskell
+or :: Bool -> Bool -> Bool
+or True _ = True
+or False y = y
+#+END_SRC
+
+Al promocionar el constructor de datos ~Bool~ hemos modelizado también
+a nivel de tipo los mismos conceptos de lógica. A través de la
+extensión /Type Families/ podemos escribir el equivalente a funciones
+sobre los tipos.
+
+#+BEGIN_SRC haskell
+type family Or (x :: Bool) (y :: Bool) :: Bool where
+  Or 'True y = 'True
+  Or 'False y = y
+#+END_SRC
+
+*** Ramas del Type Level Programming
+
+- Tipos refinados :: https://ucsd-progsys.github.io/liquidhaskell-blog/
+- Tipos dependientes :: https://wiki.haskell.org/Dependent_type
+- Regiones monádicas :: https://wiki.haskell.org/Monadic_regions
+- Dimension Types :: https://wiki.haskell.org/Physical_units/Dimensionalized_numbers
+
+*** Recursos
+
+Lectura:
+- Thinking with Types (https://thinkingwithtypes.com/)
+- Dependent Types in Haskell: Theory and Practice
+  (https://arxiv.org/abs/1610.07978)
+- Applicative Programming with Naperian Functors
+  (https://www.cs.ox.ac.uk/people/jeremy.gibbons/publications/aplicative.pdf)
+- https://www.parsonsmatt.org/2017/04/26/basic_type_level_programming_in_haskell.html
+- https://www.schoolofhaskell.com/user/konn/prove-your-haskell-for-great-safety/dependent-types-in-haskell
+
+Vídeos:
+- The Dialectics of Type-Level Programming by Aaron Levin
+  (https://www.youtube.com/watch?v=0wxGrf8toWk)
+- Keynote: LiquidHaskell: Liquid Types for Haskell – Niki Vazou
+  (https://www.youtube.com/watch?v=YByOdE-YUwY&t=1809s)
+- Type-driven Development of Communicating Systems in Idris by Edwin
+  Brady (https://www.youtube.com/watch?v=IQO9N0Y8tcM)
+- Applicative Programming with Naperian Functors by Jeremy Gibbons
+  (https://www.youtube.com/watch?v=D1sT0xNrHIQ)
+
+Cuentas:
+- Monoid Mary (@argumatronic) https://twitter.com/argumatronic
+- Jack (@Iceland_jack) https://twitter.com/iceland_jack
+
+Foros:
+- https://discourse.haskell.org
+
+** Servant
+*** Caso de uso
+**** Motivaciones
+**** Qué queremos hacer y qué no
+*** Servicio REST
+*** Integraciones
+**** Documentación
+**** Swagger
